@@ -1,0 +1,130 @@
+import tkinter as tk
+from tkinter import scrolledtext
+
+# Словарь перевода математических символов в человеческие фразы
+MATH_DICTIONARY = {
+    "∀": "Для любого (каждого) объекта",
+    "∃!": "Существует и притом единственный объект",
+    "∃": "Существует (найдется хотя бы один) объект",
+    "∈": "принадлежащий множеству",
+    "∉": "НЕ принадлежащий множеству",
+    "⊂": "являющийся подмножеством",
+    "⇒": "из этого логически следует, что",
+    "⇔": "тогда и только тогда, когда (эквивалентно)",
+    "→": "стремится к",
+    "R": "действительных (реальных) чисел",
+    "N": "натуральных чисел (1, 2, 3...)",
+    "Z": "целых чисел (..., -1, 0, 1, ...)",
+    "Q": "рациональных чисел (дробей)",
+    "∅": "пустое множество (в котором ничего нет)",
+    "¬": "отрицание того, что",
+    "|": "такой, что",
+    ":": "выполняется условие:",
+}
+
+# База данных сложных понятий высшей математики (Кольца, Тензоры и др.)
+HIGHER_MATH_CONCEPTS = {
+    "кольцо": "💍 КОЛЬЦО в алгебре — это множество элементов, в котором можно без ограничений складывать, вычитать и умножать (как обычные целые числа), и для них работают привычные законы раскрытия скобок.",
+    "тензор": "🕸 ТЕНЗОР — это обобщение чисел и матриц. Скаляр (просто число) — это тензор ранга 0. Вектор (стрелка) — это тензор ранга 1. Матрица (таблица чисел) — это тензор ранга 2. Тензор описывает характеристики, которые меняются в зависимости от направления в пространстве (например, внутреннее напряжение в металле при деформации).",
+    "поле галуа": "🛡 ПОЛЕ ГАЛУА — это конечное множество элементов, в котором можно складывать, вычитать, умножать и делить (кроме деления на 0), но результат никогда не выходит за пределы этого множества. Основа современной криптографии и шифрования.",
+}
+
+def translate_math():
+    input_text = entry_input.get().strip()
+    output_area.delete("1.0", tk.END)
+    
+    if not input_text:
+        output_area.insert(tk.END, "Пожалуйста, введите математическое выражение или термин.")
+        return
+        
+    translated_steps = []
+    
+    # Проверяем, ищет ли пользователь определение высшей математики
+    lower_input = input_text.lower()
+    concept_found = False
+    for concept, description in HIGHER_MATH_CONCEPTS.items():
+        if concept in lower_input:
+            translated_steps.append(description)
+            concept_found = True
+            
+    # Если это формула со значками, разбираем посимвольно/пословесно
+    if not concept_found:
+        translated_steps.append("🔍 ПОШАГОВЫЙ ПЕРЕВОД ФОРМУЛЫ:\n")
+        
+        # Разбиваем входную строку на элементы (по пробелам или символам)
+        # Для простоты разбора заменим сложные связки на пробелы вокруг них
+        working_text = input_text
+        for symbol in MATH_DICTIONARY.keys():
+            working_text = working_text.replace(symbol, f" {symbol} ")
+            
+        tokens = working_text.split()
+        
+        for i, token in enumerate(tokens):
+            if token in MATH_DICTIONARY:
+                translated_steps.append(f"• {token}  ➜  {MATH_DICTIONARY[token]}")
+            else:
+                # Если это просто переменная (например, x, y, epsilon)
+                translated_steps.append(f"• переменная '{token}'")
+                
+        translated_steps.append("\n💡 СВЯЗНЫЙ ТЕКСТ:")
+        # Собираем красивую человеческую фразу (базовый алгоритм сборки)
+        human_sentence = input_text
+        for symbol, human_meaning in MATH_DICTIONARY.items():
+            human_sentence = human_sentence.replace(symbol, f" [{human_meaning.lower()}] ")
+        
+        translated_steps.append(human_sentence)
+
+    # Выводим результат в окно
+    full_output = "\n".join(translated_steps)
+    output_area.insert(tk.END, full_output)
+
+# --- Создание графического интерфейса ---
+root = tk.Tk()
+root.title("🤖 Математический Переводчик v1.0 (Лицензия MIT)")
+root.geometry("850x600")
+root.configure(bg="#f4f6f9")
+
+# Заголовок
+lbl_title = tk.Label(root, text="Переводчик с математического языка на человеческий", font=("Arial", 14, "bold"), bg="#f4f6f9", fg="#2c3e50")
+lbl_title.pack(pady=10)
+
+# Инструкция и панель быстрых кнопок
+frame_quick = tk.LabelFrame(root, text=" Скопируйте примеры для теста: ", bg="#f4f6f9", font=("Arial", 9, "italic"))
+frame_quick.pack(fill=tk.X, padx=20, pady=5)
+
+def insert_example(ex_text):
+    entry_input.delete(0, tk.END)
+    entry_input.insert(0, ex_text)
+    translate_math()
+
+btn_ex1 = tk.Button(frame_quick, text="Пример 1: ∀x∈R : x>0", command=lambda: insert_example("∀ x ∈ R : x > 0"))
+btn_ex1.pack(side=tk.LEFT, padx=5, pady=5)
+
+btn_ex2 = tk.Button(frame_quick, text="Пример 2: Определение тензора", command=lambda: insert_example("Что такое тензор?"))
+btn_ex2.pack(side=tk.LEFT, padx=5, pady=5)
+
+btn_ex3 = tk.Button(frame_quick, text="Пример 3: ∃!x∈N", command=lambda: insert_example("∃! x ∈ N"))
+btn_ex3.pack(side=tk.LEFT, padx=5, pady=5)
+
+# Поле ввода
+frame_input = tk.Frame(root, bg="#f4f6f9")
+frame_input.pack(fill=tk.X, padx=20, pady=10)
+
+lbl_input = tk.Label(frame_input, text="Ведите формулу или термин:", font=("Arial", 11, "bold"), bg="#f4f6f9")
+lbl_input.pack(side=tk.LEFT, padx=5)
+
+entry_input = tk.Entry(frame_input, font=("Arial", 12), width=40)
+entry_input.pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
+
+btn_translate = tk.Button(frame_input, text="Перевести 🚀", command=translate_math, bg="#007AFF", fg="white", font=("Arial", 11, "bold"))
+btn_translate.pack(side=tk.LEFT, padx=5)
+
+# Поле вывода (Текстовая зона со скроллом)
+lbl_output = tk.Label(root, text="Человеческий перевод:", font=("Arial", 11, "bold"), bg="#f4f6f9")
+lbl_output.pack(anchor="w", padx=20, pady=5)
+
+output_area = scrolledtext.ScrolledText(root, font=("Consolas", 11), wrap=tk.WORD, bg="white", bd=2, relief=tk.GROOVE)
+output_area.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+
+# Запуск
+root.mainloop()
